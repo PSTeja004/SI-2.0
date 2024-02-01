@@ -1,0 +1,181 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat");
+@import url("https://fonts.googleapis.com/css?family=Josefin+Slab");
+
+#home {
+  min-height: 400px;
+  position: relative;
+  text-align: center;
+}
+#home::after {
+  content: "";
+  background-image: url(images/projectbg1.jpeg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;
+}
+.landing-text {
+  position: absolute;
+  font-size: xx-large;
+  color: rgb(8, 0, 154);
+  top: 60%;
+  left: 80%;
+  transform: translate(-50%, -50%);
+}
+#mentor,
+#team,
+#meetings,
+#milestones,
+#videos {
+  margin: 0px 150px 0px 150px;
+}
+#mentor,
+#team {
+  padding: 20px 0px;
+  border: none;
+}
+#mentor > div > h1,
+#team > div > h1,
+#meetings > div > h1,
+#milestones > div > h1,
+#videos > div > h1 {
+  text-align: center;
+  padding-bottom: 20px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+}
+
+.meeting-minutes-container {
+  width: 80%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+h1 {
+  font-size: 24px;
+  color: #000;
+  margin-bottom: 20px;
+}
+
+.meeting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  z-index: 1;
+}
+
+.meeting-date {
+  background-color: #fff;
+  border: 1px solid #1313ae;
+  padding: 10px;
+  font-size: 18px;
+  color: #000;
+  opacity: 0.6;
+}
+
+.milestones-container {
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+h1 {
+  font-size: 24px;
+  color: #000;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: #01018b;
+  color: #fff;
+}
+
+th, td {
+  border: 1px solid #25258790;
+  padding: 8px;
+  text-align: left;
+}
+
+tr:nth-child(even) {
+  background-color: #01018b17;
+}
+
+.done {
+  color: green;
+}
+
+.late {
+  color: red;
+}
+
+.pending {
+  color: orange;
+}
+
+.video-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.video-item {
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  padding: 5px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.video-thumbnail {
+  width: 20%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.justified-text {
+  text-align: justify;
+}
+
+#popup-container {
+  display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(7, 0, 0, 0.275);
+      z-index: 1000000; /* Adjust the z-index value as needed to make it appear on top */
+      text-align: center;
+}
+
+#popup-content {
+  text-align: center;
+}
+
+#popup-trigger {
+  cursor: pointer;
+}
+
+button {
+  padding: 10px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
