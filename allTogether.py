@@ -197,5 +197,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Thermal File")
     app = MainWindow(root)
-    app.pack(side=tk.Top, padx=10,pady=10)
+    app.pack(side=tk.TOP, padx=10, pady=10)
     root.mainloop()
