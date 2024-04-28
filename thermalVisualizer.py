@@ -1,5 +1,6 @@
 import tkinter as tk
 import numpy as np
+from PIL import Image, ImageTk
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -7,12 +8,12 @@ class MainWindow(tk.Frame):
     def __init__(self, parent, data=None):
         super().__init__(parent)
         self.parent = parent
-        self.file_directory = ""
-        self.file_prefix = ""
-        self.total_frames = 0
-        self.frame_index = 0
         self.data = data
         self.setup_ui()
+
+    def set_data(self, data):
+        self.data = data
+        self.color_map()
 
     def setup_ui(self):
         self.min_temp = 16
@@ -37,9 +38,6 @@ class MainWindow(tk.Frame):
         self.max_temp_scale = tk.Scale(self, from_=self.min_temp, to=self.max_temp, orient="horizontal", resolution=0.08,length=200, command=self.update_max_temp)
         self.max_temp_scale.set(self.max_temp)
         self.max_temp_scale.grid(row=2, column=1, padx=10, pady=10)
-
-        self.graphical_viewer = tk.Label(self)
-        self.graphical_viewer.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
 
     def update_temp(self):
         self.min_temp=16
@@ -69,14 +67,15 @@ class MainWindow(tk.Frame):
             return None
         else:
             self.update_colorbar()
-            norm = mcolors.Normalize(vmin=self.min_temp, vmax=self.max_temp)
-
-            # Apply the colormap to the normalized data to get an RGBA image
-            rgba_image = plt.cm.jet(norm(self.data))
-
-            return rgba_image
+            normalized_data = (self.data - self.min_temp) / (self.max_temp - self.min_temp)
+            colormap = plt.get_cmap('jet')
+            rgba_data = colormap(normalized_data)
+            pil_image = Image.fromarray((rgba_data * 255).astype(np.uint8))
+            return pil_image
         
-    
+    def display(self):
+        pass
+
     def update_colorbar(self):
         self.color_bar_canvas.delete("color")
         slider_blue_val = self.min_temp_scale.get()
@@ -95,16 +94,18 @@ class MainWindow(tk.Frame):
             black_width = color_width_red - color_width_blue
             self.color_bar_canvas.create_rectangle(color_width_blue, 0, color_width_blue + black_width, 20, fill="black", outline="", tags="color")
 
-
-
     def get_inputs(self):
-        return ['Thermal File']
+        return ['Thermal','Image','Video']
 
     def get_outputs(self):
         return ['Image']
     
     def get_data(self):
-        return self.color_map()
+        if self.data is not None:
+            pil_image = self.color_map()
+            return pil_image
+        else:
+            return None
     
 
 if __name__ == "__main__":

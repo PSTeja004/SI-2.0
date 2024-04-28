@@ -1,8 +1,5 @@
 import tkinter as tk
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-import matplotlib.colors as mcolors
+from PIL import ImageTk
 
 class MainWindow(tk.Frame):
     def __init__(self, parent, img=None):
@@ -11,24 +8,28 @@ class MainWindow(tk.Frame):
         self.img = img
         self.setup_ui()
 
+    def set_data(self, img):
+        self.img = img
+        self.display()
+
     def setup_ui(self):
         self.graphical_viewer = tk.Label(self)
         self.graphical_viewer.grid(row=0, column=0, padx=10, pady=10)
         self.display()
 
     def display(self):  
-        if self.img is None or len(self.img) == 0:
-            print("Data is None or empty")
+        if self.img is None:
+            print("disply none.")
             return None
         else:     
-            # Display the RGBA image
-            plt.imshow(self.img, interpolation='nearest')
-            plt.axis('off')  # Turn off axis
-            plt.savefig('temp.png')  # Save as temp.png
-            photo = tk.PhotoImage(file='temp.png')
-            self.graphical_viewer.config(image=photo)  # Update the image
+            # Convert PIL image to Tkinter PhotoImage
+            photo = ImageTk.PhotoImage(self.img)
+            
+            # Update the image in the graphical viewer
+            self.graphical_viewer.config(image=photo)
             self.graphical_viewer.image = photo
-            os.remove('temp.png')
+            
+            return None
 
     def get_inputs(self):
         return [['Image']]
@@ -37,9 +38,7 @@ class MainWindow(tk.Frame):
         return []
     
     def get_data(self):
-        return self.color_map()
-
-
+        return None
 
 if __name__ == "__main__":
     root = tk.Tk()

@@ -15,6 +15,7 @@ class MainWindow(tk.Frame):
         self.playing = False
         self.width = 0
         self.height = 0
+        self.data=None
     
         self.label1 = tk.Label(self, text="Thermal File:")
         self.label1.grid(row=0, column=0)
@@ -55,6 +56,8 @@ class MainWindow(tk.Frame):
     def open_file(self):
         filename = filedialog.askopenfilename(title="Select Thermal File", filetypes=(("Text files", "*.txt"),))
         if filename:
+            self.entry1.delete(0, tk.END)
+            self.entry1.insert(0, filename)
             self.file_directory = os.path.dirname(filename)
             self.file_prefix = os.path.splitext(os.path.basename(filename))[0][:-1]
             self.total_frames = self.get_total_frames()
@@ -64,7 +67,7 @@ class MainWindow(tk.Frame):
             self.entry2.config(state="readonly")
             self.horizontal_slider.set(0)
             self.frame_index = 0
-            data=[]
+            self.data=[]
             with open(filename, 'r') as file:
                 content=file.readlines()
             
@@ -72,15 +75,43 @@ class MainWindow(tk.Frame):
             self.width=int(content[1])
 
             for line in content[2:]:
-                data.extend([float(val) for val in line.split()])
+                self.data.extend([float(val) for val in line.split()])
 
             # Convert array to numpy array
-            data = np.array(data)
+            self.data = np.array(self.data)
 
             # Reshape the data as per the frame size (assuming 640x512 here)
-            data = data.reshape(self.width, self.height)
+            self.data = self.data.reshape(self.width, self.height)
 
-            return data
+            self.next_frames()
+
+            self.current_frame_data(self.data)
+
+    def display(self):
+        pass
+       
+    def next_frames(self):
+        filename = os.path.join(self.file_directory, f"{self.file_prefix}{self.frame_index}.txt")
+        with open(filename, 'r') as file:
+            content=file.readlines()
+        self.data=[]
+            
+        self.height=int(content[0])
+        self.width=int(content[1])
+
+        for line in content[2:]:
+            self.data.extend([float(val) for val in line.split()])
+
+        # Convert array to numpy array
+        self.data = np.array(self.data)
+
+        # Reshape the data as per the frame size (assuming 640x512 here)
+        self.data = self.data.reshape(self.width, self.height)
+
+        self.current_frame_data(self.data)
+
+    def current_frame_data(self,frame_data):
+        return frame_data
 
     def get_total_frames(self):
         frame_number = 0
@@ -99,17 +130,19 @@ class MainWindow(tk.Frame):
             self.play_frames()
 
     def play_frames(self):
-        delay=300
+        #delay=100
         while self.playing and self.frame_index < self.total_frames:
             self.frame_index += 1
-            self.entry3.config(state="normal")
-            self.entry3.delete(0, tk.END)
-            self.entry3.insert(0, str(self.frame_index))
-            self.entry3.config(state="readonly")
-            self.horizontal_slider.set((self.frame_index / self.total_frames) * 100)
-
+            if self.entry3.winfo_exists():
+                self.entry3.config(state="normal")
+                self.entry3.delete(0, tk.END)
+                self.entry3.insert(0, str(self.frame_index))
+                self.entry3.config(state="readonly")
+            if self.horizontal_slider.winfo_exists():
+                self.horizontal_slider.set((self.frame_index / self.total_frames) * 100)
             self.update()
-            self.after(delay)
+        #    self.after(delay)
+            self.next_frames()
 
     def stop(self):
         self.playing = False
@@ -124,6 +157,7 @@ class MainWindow(tk.Frame):
         if self.frame_index > 0:
             self.frame_index -= 1
             self.update_frame_entry()
+            self.next_frames()
 
     def update_frame_entry(self):
         self.entry3.config(state="normal")
@@ -134,18 +168,20 @@ class MainWindow(tk.Frame):
     def next_frame(self):
         if self.frame_index < self.total_frames - 1:
             self.frame_index += 1
+            self.next_frames()
 
     def slider_callback(self, value):
         self.frame_index = int((int(value) / 100) * self.total_frames)
+        self.next_frames()
         
     def get_inputs(self):
         return []
     
     def get_outputs(self):
-        return ['Thermal File']
+        return ['Thermal']
     
     def get_data(self):
-        return self.open_file()
+        return self.data
     
 if __name__ == "__main__":
     root = tk.Tk()
