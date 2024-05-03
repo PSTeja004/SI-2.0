@@ -1,11 +1,16 @@
-# si2optmised - optimised Friday afternoon with settings as discussed.
+# SI-2
+# Developed by Rahul, Sai teja, Savarnika, Soham
 
+import sys
 from tkinter import ttk, messagebox, filedialog
 import tkinter as tk
 import os
 import importlib.util
 import threading
 import time
+
+# Increase recursion limit
+#sys.setrecursionlimit(5000) #Uncomment this if you run into maximum recurssion depth
 
 line = None
 opened_files_instances={}
@@ -174,8 +179,7 @@ class Canvas_Manager:
 class Ui_MainWindow:
     def __init__(self, root):
         self.root = root
-        self.root.title("MainWindow")
-        self.root.geometry("800x600")
+        self.root.geometry("1920x900")
         self.processing = False  # State flag to track processing state
 
         self.tabWidget = ttk.Notebook(self.root)
@@ -187,9 +191,10 @@ class Ui_MainWindow:
         self.groupBox1 = ttk.LabelFrame(self.tab1, text="Create Configuration")
         self.groupBox1.pack(side="top", anchor="nw", padx=10, pady=10)
 
-        self.pushButton_2 = ttk.Button(self.groupBox1, text="New",command=self.clear_frames)
+        self.pushButton_2 = ttk.Button(self.groupBox1, text="New", command=self.clear_frames)
         self.pushButton_2.pack(side="left")
 
+        
         # Combobox to display pyc files
         self.comboBox = ttk.Combobox(self.groupBox1)
         self.comboBox.pack(side="left")
@@ -250,6 +255,7 @@ class Ui_MainWindow:
 
         self.populate_saved_configurations()
 
+
         
     def setup_ui(self):
         # UI setup...
@@ -275,26 +281,8 @@ class Ui_MainWindow:
         self.processing_thread.start()
     
     def process_all_links_loop(self):
-        print('\nentering process_all_links_loop fucntion\n')
+        print('\nentering process_all_links_loop function\n')
         global start, end, opened_files_instances
-
-        '''while self.processing:
-            if self.processing_event.is_set():
-                # Loop through all connections and transfer data
-                for link_index in range(len(start)):
-                    start_plugin = start[link_index]
-                    end_plugin = end[link_index]
-
-                    # Retrieve data from the start plugin
-                    data = opened_files_instances[start_plugin].get_data()
-
-                    # Set data to the end plugin and update the end plugin instance
-                    opened_files_instances[end_plugin].set_data(data)
-                    #opened_files_instances[end_plugin].parent.update()  # Update the parent window to refresh the UI
-
-            time.sleep(0.05)
-
-        print("Processing stopped.")'''
 
         def update_ui():
             if self.processing_event.is_set():
@@ -309,16 +297,13 @@ class Ui_MainWindow:
                     # Set data to the end plugin and update the end plugin instance
                     opened_files_instances[end_plugin].set_data(data)
 
-                    # Schedule the UI update in the main thread
-                    opened_files_instances[end_plugin].parent.after(0, opened_files_instances[end_plugin].parent.update)
-
-            # Repeat the update_ui function after a short delay
-            self.root.after(50, update_ui)
+                # Schedule the next UI update
+                self.root.after(50, update_ui)
+            else:
+                print("Processing stopped.")
 
         # Start the UI update loop
-        update_ui()
-
-        print("Processing stopped.")
+        self.root.after(50, update_ui)
 
 
     def stop_processing(self):
@@ -342,21 +327,25 @@ class Ui_MainWindow:
             
 
     def populate_pyc_files(self):
-        # Get the current directory
-        current_directory = os.getcwd()
+        if getattr(sys, 'frozen', False):
+            # Running as an executable
+            current_directory=os.path.dirname(sys.executable)
+        else:
+            # Running as a script
+            current_directory = os.getcwd()
 
         # Get the name of the current Python file
         current_file = os.path.basename(__file__)
-        
+
         # List all Python files in the current directory
-        pyc_files = [file for file in os.listdir(current_directory) if file.endswith(".py")]
-        
+        pyc_files = [file for file in os.listdir(current_directory) if file.endswith(".pyc")]
+
         # Sort the list of Python files
         pyc_files.sort()
-        
-        # Exclude "SInterface2.py" from the list
+
+        # Exclude the current file from the list
         result_list = list(filter(lambda x: x != current_file, pyc_files))
-        
+
         # Populate the Combobox with the list of Python files
         self.comboBox["values"] = result_list
         
@@ -374,9 +363,6 @@ class Ui_MainWindow:
         global start
         global end
         
-        # Clear frames in groupBox3
-        #for frame in self.frames_groupbox3:
-        #    frame.destroy()
         self.frames_groupbox3.clear()
 
         # Clear frames in groupBox4
@@ -425,12 +411,17 @@ class Ui_MainWindow:
         selected_file = self.comboBox.get()
         if selected_file:
             try:
-                module_name = os.path.splitext(selected_file)[0]
-                module_path = os.path.join(os.getcwd(), selected_file)
-                spec = importlib.util.spec_from_file_location(module_name, module_path)
+                if getattr(sys, 'frozen', False):
+                    # Running as an executable
+                    file_path = os.path.join(sys._MEIPASS, selected_file)
+                else:
+                    # Running as a script
+                    file_path = os.path.join(os.getcwd(), selected_file)
+
+                spec = importlib.util.spec_from_file_location(selected_file, file_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                
+
                 main_window = module.MainWindow(frame4)
                 main_window.pack(fill="both", expand=True)
 
@@ -445,15 +436,13 @@ class Ui_MainWindow:
 
                 # Store the plugin name in the frame
                 frame4.plugin_name = selected_file
-                self.frames_groupbox3.append(selected_file) 
-                #frame3.plugin_name = selected_file
-
+                self.frames_groupbox3.append(selected_file)
 
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load file: {e}")
     
     def save_configuration(self, file_path):
-        config_folder = os.path.join(os.getcwd(), "config_new")
+        config_folder = os.path.join(os.path.dirname(sys.executable), "config_new") if getattr(sys, 'frozen', False) else os.path.join(os.getcwd(), "dist", "config_new")
         os.makedirs(config_folder, exist_ok=True)
         file_name = os.path.basename(file_path)
         file_name = file_name.replace(".py", "_config.py")
@@ -463,8 +452,6 @@ class Ui_MainWindow:
         loaded_files = []
 
         for frame in self.frames_groupbox3:
-            #x, y = frame.winfo_x(), frame.winfo_y()
-            #frame_positions_groupbox3.append((x, y))
             loaded_files.append(frame)
 
         frame_positions_groupbox4 = []
@@ -573,7 +560,13 @@ class Ui_MainWindow:
         print('\nloading configuration\n')
         selected_config = self.comboBox_2.get()
         if selected_config:
-            config_folder = os.path.join(os.getcwd(), "config_new")
+            if getattr(sys, 'frozen', False):
+                # Running as an executable
+                config_folder = os.path.join(os.path.dirname(sys.executable), "config_new")
+            else:
+                # Running as a script
+                config_folder = os.path.join(os.getcwd(), "dist", "config_new")
+            
             file_path = os.path.join(config_folder, selected_config)
             if not os.path.exists(file_path):
                 messagebox.showerror("Error", f"Configuration file not found: {selected_config}")
@@ -643,7 +636,7 @@ class Ui_MainWindow:
                 end_plugin.parent.update()  # Update the parent window to refresh the UI
 
     def populate_saved_configurations(self):
-        config_folder = os.path.join(os.getcwd(), "config_new")
+        config_folder = os.path.join(os.path.dirname(sys.executable), "config_new") if getattr(sys, 'frozen', False) else os.path.join(os.getcwd(), "dist", "config_new")
         if not os.path.exists(config_folder):
             os.makedirs(config_folder)
         config_files = [file for file in os.listdir(config_folder) if file.endswith("_config.py")]
@@ -655,6 +648,6 @@ class Ui_MainWindow:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.attributes('-fullscreen', True)
+    #root.attributes('-fullscreen', True)
     ui = Ui_MainWindow(root)
     root.mainloop()
